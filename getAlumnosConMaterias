@@ -1,0 +1,29 @@
+const getAlumnosConMaterias = (req, res) => {
+
+    const query = `
+        SELECT 
+            a.id AS alumno_id,
+            a.nombre,
+            a.apellido,
+            a.edad,
+            IFNULL(GROUP_CONCAT(m.nombre), 'Sin materias') AS materias
+        FROM alumnos a
+        LEFT JOIN alumnos_materias am ON a.id = am.alumno_id
+        LEFT JOIN materias m ON am.materia_id = m.id
+        GROUP BY a.id, a.nombre, a.apellido, a.edad
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                message: "Error al obtener alumnos con materias",
+                error: err
+            });
+        }
+
+        res.json({
+            message: "Alumnos con materias obtenidos correctamente",
+            data: results
+        });
+    });
+};
