@@ -4,6 +4,7 @@ Información General
 - Proyecto: proyecto-final-backend
 - Fecha: 22 de mayo de 2026
 - Participante: Quintero Luna Roberto Gael
+- Participante: Felix Guerrero Cristhian Josue
 
 Objetivo de este Commit
 Este commit tiene como propósito demostrar mi participación en el proyecto, tal como lo solicita el profesor. Se realizó una revisión básica del repositorio y se agregó esta documentación como evidencia.
