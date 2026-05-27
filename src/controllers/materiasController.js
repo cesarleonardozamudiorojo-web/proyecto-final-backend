@@ -94,3 +94,4 @@ module.exports = {
     createMateria,
     getMateriasCountByAlumnoId
 };
+// Evidencia de participación Eduardo Navarro Tirado
