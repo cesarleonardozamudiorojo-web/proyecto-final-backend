@@ -20,3 +20,4 @@ const vehiculoSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Vehiculo", vehiculoSchema);
+// Evidencia de participación - Eduardo Navarro Tirado
