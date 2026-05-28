@@ -1,11 +1,9 @@
 const db = require("../../db/mysql");
 
 // 1. CONSULTAR TODOS LOS ALUMNOS ACTIVOS (GET)
-// Trae solo los registros donde isActive es verdadero usando SQL plano
 const getAlumnos = async (req, res) => {
     const query = "SELECT id, nombre, apellido, edad, correo FROM alumnos WHERE isActive = true";
-    const resultado = await db.query(query);
-    const alumnos = resultado[0];
+    const alumnos = (await db.query(query))[0];
 
     return res.status(200).json({
         message: "Alumnos activos obtenidos correctamente",
@@ -14,7 +12,6 @@ const getAlumnos = async (req, res) => {
 };
 
 // 2. CONSULTAR ALUMNO POR ID (GET)
-// Busca al alumno por su ID clásico de los parámetros de la URL
 const getAlumnoById = async (req, res) => {
     const id = req.params.id;
 
@@ -23,8 +20,7 @@ const getAlumnoById = async (req, res) => {
     }
 
     const query = "SELECT id, nombre, apellido, edad, correo FROM alumnos WHERE id = ? AND isActive = true";
-    const resultado = await db.query(query, [id]);
-    const alumnos = resultado[0];
+    const alumnos = (await db.query(query, [id]))[0];
 
     if (alumnos.length === 0) {
         return res.status(404).json({ message: "Alumno no encontrado o inactivo" });
@@ -37,7 +33,6 @@ const getAlumnoById = async (req, res) => {
 };
 
 // 3. BUSCAR ALUMNO POR LETRAS DEL NOMBRE O APELLIDO (GET)
-// Utiliza la sentencia LIKE tradicional de SQL para encontrar coincidencias parciales
 const searchAlumno = async (req, res) => {
     const searchParam = req.query.query;
 
@@ -48,8 +43,7 @@ const searchAlumno = async (req, res) => {
     const query = "SELECT id, nombre, apellido, edad, correo FROM alumnos WHERE (nombre LIKE ? OR apellido LIKE ?) AND isActive = true";
     const formatQuery = "%" + searchParam + "%";
     
-    const resultado = await db.query(query, [formatQuery, formatQuery]);
-    const alumnos = resultado[0];
+    const alumnos = (await db.query(query, [formatQuery, formatQuery]))[0];
 
     return res.status(200).json({
         message: "Búsqueda de alumnos realizada correctamente",
@@ -58,7 +52,6 @@ const searchAlumno = async (req, res) => {
 };
 
 // 4. CREAR ALUMNO (POST)
-// Inserta un nuevo registro capturando las propiedades del cuerpo de la petición de forma básica
 const createAlumno = async (req, res) => {
     const nombre = req.body.nombre;
     const apellido = req.body.apellido;
@@ -72,8 +65,7 @@ const createAlumno = async (req, res) => {
     }
 
     const query = "INSERT INTO alumnos (nombre, apellido, edad, correo, isActive) VALUES (?, ?, ?, ?, true)";
-    const resultado = await db.query(query, [nombre, apellido, edad, correo]);
-    const result = resultado[0];
+    const result = (await db.query(query, [nombre, apellido, edad, correo]))[0];
 
     return res.status(201).json({
         message: "Alumno registrado correctamente",
@@ -82,7 +74,6 @@ const createAlumno = async (req, res) => {
 };
 
 // 5. MODIFICAR ALUMNO (PUT)
-// Actualiza los datos del alumno de manera directa mediante parámetros tradicionales
 const updateAlumno = async (req, res) => {
     const id = req.params.id;
     const nombre = req.body.nombre;
@@ -99,8 +90,7 @@ const updateAlumno = async (req, res) => {
     }
 
     const query = "UPDATE alumnos SET nombre = ?, apellido = ?, edad = ?, correo = ? WHERE id = ? AND isActive = true";
-    const resultado = await db.query(query, [nombre, apellido, edad, correo, id]);
-    const result = resultado[0];
+    const result = (await db.query(query, [nombre, apellido, edad, correo, id]))[0];
 
     if (result.affectedRows === 0) {
         return res.status(404).json({ message: "No se pudo actualizar. El alumno no existe o está inactivo" });
@@ -112,7 +102,7 @@ const updateAlumno = async (req, res) => {
 };
 
 // 6. ELIMINACIÓN LÓGICA DIRECTA (DELETE)
-// Ejecuta el UPDATE directamente sin hacer un SELECT previo, cumpliendo la regla de optimización
+// Cero validaciones previas de existencia. Un solo query directo.
 const deleteAlumno = async (req, res) => {
     const id = req.params.id;
 
@@ -121,8 +111,7 @@ const deleteAlumno = async (req, res) => {
     }
 
     const query = "UPDATE alumnos SET isActive = false WHERE id = ?";
-    const resultado = await db.query(query, [id]);
-    const result = resultado[0];
+    const result = (await db.query(query, [id]))[0];
 
     if (result.affectedRows === 0) {
         return res.status(404).json({ 
@@ -135,8 +124,7 @@ const deleteAlumno = async (req, res) => {
     });
 };
 
-// 7. LOGIN DE ALUMNOS / ADMINISTRADORES (POST)
-// Valida las credenciales en la base de datos comparando el correo directamente de manera tradicional
+// 7. LOGIN DE ALUMNOS (POST)
 const loginAlumno = async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -146,8 +134,7 @@ const loginAlumno = async (req, res) => {
     }
 
     const query = "SELECT id, nombre, apellido, correo FROM alumnos WHERE correo = ? AND isActive = true";
-    const resultado = await db.query(query, [email]);
-    const rows = resultado[0];
+    const rows = (await db.query(query, [email]))[0];
 
     if (rows.length === 0) {
         return res.status(401).json({ message: "Credenciales incorrectas o el usuario no existe" });
