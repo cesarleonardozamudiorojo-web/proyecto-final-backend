@@ -1,22 +1,25 @@
 const mongoose = require("mongoose");
 
-const vehiculoSchema = new mongoose.Schema({
-
+/**
+ * ESQUEMA DE VEHÍCULOS (MONGODB)
+ * Define la estructura de datos NoSQL. Se utiliza la propiedad 'year' en lugar de 'anio' 
+ * para garantizar la correcta codificación de caracteres en las respuestas JSON de la API.
+ */
+const VehiculoSchema = new mongoose.Schema({
     marca: {
         type: String,
-        required: true
+        required: [true, "La marca del vehículo es completamente obligatoria"]
     },
-
     modelo: {
         type: String,
-        required: true
+        required: [true, "El modelo del vehículo es obligatorio"]
     },
-
-    anio: {
+    year: {
         type: Number,
-        required: true
+        required: [true, "El año (year) numérico del vehículo es obligatorio"]
     }
-
+}, { 
+    versionKey: false // Elimina el campo autogenerado '__v' para un JSON limpio
 });
 
-module.exports = mongoose.model("Vehiculo", vehiculoSchema);
+module.exports = mongoose.model("Vehiculo", VehiculoSchema);

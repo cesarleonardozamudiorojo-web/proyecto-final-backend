@@ -1,20 +1,27 @@
-// 🔥 IMPORTAR CONEXIÓN MYSQL
+// 🔥 CONEXIÓN MYSQL
 const db = require("../../db/connection");
+
+// 🔥 IMPORTAR JWT
+const jwt = require("jsonwebtoken");
 
 // 🔥 IMPORTAR BCRYPT
 const bcrypt = require("bcryptjs");
 
-// 🔥 IMPORTAR JWT
-const jwt = require("jsonwebtoken");
 
 // 🔥 LOGIN
 const login = (req, res) => {
 
     // Obtener body
-    const { email, password } = req.body;
+    const {
+        email,
+        password
+    } = req.body;
 
     // Validar campos
-    if (!email || !password) {
+    if (
+        !email ||
+        !password
+    ) {
 
         return res.status(400).json({
             message: "Email y password son obligatorios"
@@ -22,17 +29,26 @@ const login = (req, res) => {
 
     }
 
-    // Buscar usuario
-    const sql = "SELECT * FROM usuarios WHERE email = ?";
+    // Query SQL
+    const sql = `
+        SELECT
+            id,
+            email,
+            password,
+            role
+        FROM usuarios
+        WHERE email = ?
+    `;
 
-    db.query(sql, [email], async (err, results) => {
+    // Ejecutar query
+    db.query(sql, [email], async (error, results) => {
 
         // Error servidor
-        if (err) {
+        if (error) {
 
             return res.status(500).json({
                 message: "Error del servidor",
-                error: err
+                error
             });
 
         }
@@ -55,7 +71,7 @@ const login = (req, res) => {
             usuario.password
         );
 
-        // Password incorrecta
+        // Contraseña incorrecta
         if (!validPassword) {
 
             return res.status(400).json({
@@ -64,7 +80,7 @@ const login = (req, res) => {
 
         }
 
-        // Crear token
+        // Crear token JWT
         const token = jwt.sign(
             {
                 id: usuario.id,
@@ -77,7 +93,7 @@ const login = (req, res) => {
             }
         );
 
-        // Respuesta exitosa
+        // Respuesta correcta
         res.status(200).json({
             message: "Login correcto",
             token
@@ -86,6 +102,7 @@ const login = (req, res) => {
     });
 
 };
+
 
 // 🔥 EXPORTAR MÉTODOS
 module.exports = {

@@ -1,43 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const connection = require("../../db/connection");
+const alumnosMateriasController = require("../controllers/alumnosMateriasController");
 
-// GET materias por alumno
-router.get("/getMateriasByAlumnoId/:id", (req, res) => {
-    const { id } = req.params;
+/**
+ * C) Endpoints de relación alumno-materia solicitados por el profesor
+ */
 
-    if (!id) {
-        return res.status(400).json({
-            message: "El id es obligatorio"
-        });
-    }
+// 1. Relacionar alumno con materia (POST /api/assignMateriaToAlumno)
+router.post("/assignMateriaToAlumno", alumnosMateriasController.assignMateriaToAlumno);
 
-    if (isNaN(id)) {
-        return res.status(400).json({
-            message: "El id debe ser numérico"
-        });
-    }
+// 2. Consultar materias relacionadas a un alumno (GET /api/getMateriasByAlumnoId/:id)
+router.get("/getMateriasByAlumnoId/:id", alumnosMateriasController.getMateriasByAlumnoId);
 
-    const query = `
-        SELECT m.id, m.nombre
-        FROM materias m
-        INNER JOIN alumnos_materias am ON m.id = am.materia_id
-        WHERE am.alumno_id = ?
-    `;
-
-    connection.query(query, [id], (err, results) => {
-        if (err) {
-            return res.status(500).json({
-                message: "Error en servidor",
-                error: err
-            });
-        }
-
-        return res.status(200).json({
-            message: "Materias del alumno obtenidas correctamente",
-            data: results
-        });
-    });
-});
+// 3. Consultar cuántas materias tiene un alumno (GET /api/getMateriasCountByAlumnoId/:id)
+router.get("/getMateriasCountByAlumnoId/:id", alumnosMateriasController.getMateriasCountByAlumnoId);
 
 module.exports = router;

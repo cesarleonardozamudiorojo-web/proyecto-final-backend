@@ -1,158 +1,59 @@
-const db = require("../../db/connection");
+const db = require("../../db/mysql");
 
-// 🔥 OBTENER MATERIAS
-const getMaterias = (req, res) => {
+/**
+ * 1. CONSULTAR TODAS LAS MATERIAS (GET)
+ * Trae la lista completa de materias registradas en la base de datos MySQL.
+ */
+const getMaterias = async (req, res) => {
+    try {
+        // Consulta directa para traer todas las materias existentes
+        const query = "SELECT id AS materiaId, nombre AS nombreMateria, semestre AS semestreMateria, creditos AS creditosMateria FROM materias";
+        const [materias] = await db.query(query);
 
-    const sql = "SELECT * FROM materias";
-
-    db.query(sql, (err, results) => {
-
-        if (err) {
-            return res.status(500).json({
-                message: "Error al obtener materias",
-                error: err
-            });
-        }
-
-        res.status(200).json({
+        return res.status(200).json({
             message: "Materias obtenidas correctamente",
-            data: results
+            data: materias
         });
-
-    });
-
-};
-
-// 🔥 CREAR MATERIA
-const createMateria = (req, res) => {
-
-    const { nombre } = req.body;
-
-    if (!nombre) {
-        return res.status(400).json({
-            message: "El nombre es obligatorio"
+    } catch (error) {
+        return res.status(500).json({ 
+            message: "Error controlado en el servidor al obtener las materias", 
+            error: error.message 
         });
     }
+};
 
-    const sql = "INSERT INTO materias(nombre) VALUES(?)";
+/**
+ * 2. CREAR MATERIA (POST)
+ * Valida de forma estricta que el nombre, semestre y créditos existan y no vengan vacíos.
+ */
+const createMateria = async (req, res) => {
+    try {
+        const { nombre, semestre, creditos } = req.body;
 
-    db.query(sql, [nombre], (err, results) => {
-
-        if (err) {
-            return res.status(500).json({
-                message: "Error al crear materia",
-                error: err
-            });
+        // Validaciones obligatorias de la rúbrica (que no venga vacío)
+        if (!nombre || nombre.trim() === "") {
+            return res.status(400).json({ message: "El nombre de la materia es obligatorio y no puede venir vacío" });
+        }
+        if (!semestre || !creditos) {
+            return res.status(400).json({ message: "El semestre y los créditos son obligatorios" });
         }
 
-        res.status(201).json({
+        const query = "INSERT INTO materias (nombre, semestre, creditos) VALUES (?, ?, ?)";
+        const [result] = await db.query(query, [nombre, semestre, creditos]);
+
+        return res.status(201).json({
             message: "Materia creada correctamente",
-            data: results
+            data: { id: result.insertId, nombre, semestre, creditos }
         });
-
-    });
-
-};
-
-// 🔥 ASIGNAR MATERIA A ALUMNO
-const assignMateriaToAlumno = (req, res) => {
-
-    const { alumno_id, materia_id } = req.body;
-
-    if (!alumno_id || !materia_id) {
-        return res.status(400).json({
-            message: "alumno_id y materia_id son obligatorios"
+    } catch (error) {
+        return res.status(500).json({ 
+            message: "Error controlado en el servidor al crear la materia", 
+            error: error.message 
         });
     }
-
-    const sql = `
-        INSERT INTO alumnos_materias(alumno_id, materia_id)
-        VALUES(?, ?)
-    `;
-
-    db.query(sql, [alumno_id, materia_id], (err, results) => {
-
-        if (err) {
-            return res.status(500).json({
-                message: "Error al asignar materia",
-                error: err
-            });
-        }
-
-        res.status(201).json({
-            message: "Materia asignada correctamente",
-            data: results
-        });
-
-    });
-
-};
-
-// 🔥 OBTENER MATERIAS POR ALUMNO
-const getMateriasByAlumnoId = (req, res) => {
-
-    const { id } = req.params;
-
-    const sql = `
-        SELECT materias.nombre
-        FROM alumnos_materias
-        INNER JOIN materias
-        ON alumnos_materias.materia_id = materias.id
-        WHERE alumnos_materias.alumno_id = ?
-    `;
-
-    db.query(sql, [id], (err, results) => {
-
-        if (err) {
-            return res.status(500).json({
-                message: "Error al obtener materias",
-                error: err
-            });
-        }
-
-        res.status(200).json({
-            message: "Materias obtenidas correctamente",
-            data: results
-        });
-
-    });
-
-};
-
-// 🔥 CONTAR MATERIAS
-const getMateriasCountByAlumnoId = (req, res) => {
-
-    const { id } = req.params;
-
-    const sql = `
-        SELECT COUNT(*) AS total_materias
-        FROM alumnos_materias
-        WHERE alumno_id = ?
-    `;
-
-    db.query(sql, [id], (err, results) => {
-
-        if (err) {
-            return res.status(500).json({
-                message: "Error al contar materias",
-                error: err
-            });
-        }
-
-        res.status(200).json({
-            message: "Conteo obtenido correctamente",
-            data: results[0]
-        });
-
-    });
-
 };
 
 module.exports = {
     getMaterias,
-    createMateria,
-    assignMateriaToAlumno,
-    getMateriasByAlumnoId,
-    getMateriasCountByAlumnoId
+    createMateria
 };
-// Evidencia de participación Eduardo Navarro Tirado

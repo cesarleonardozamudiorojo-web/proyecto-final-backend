@@ -1,50 +1,50 @@
-// 🔥 IMPORTAR EXPRESS
 const express = require("express");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
-// 🔥 IMPORTAR CORS
-const cors = require("cors");
-
-// 🔥 IMPORTAR MONGODB
-const connectMongo = require("./src/config/mongo");
-
-// 🔥 IMPORTAR RUTAS
-const alumnosRoutes = require("./src/routes/alumnos");
-const materiasRoutes = require("./src/routes/materias");
-const vehiculosRoutes = require("./src/routes/vehiculos");
-const authRoutes = require("./src/routes/authRoutes");
-
-// 🔥 CREAR APP
 const app = express();
 
-// 🔥 MIDDLEWARES
+// MIDDLEWARE PARA PROCESAR JSON
 app.use(express.json());
-app.use(cors());
 
-// 🔥 CONECTAR MONGODB
-connectMongo();
+// IMPORTACIÓN DE ENRUTADORES
+const alumnosRoutes = require("./src/routes/alumnos");
+const materiasRoutes = require("./src/routes/materias"); // ¡Agregado para solucionar tu 404!
+const alumnosMateriasRoutes = require("./src/routes/alumnosMaterias");
+const vehiculosRoutes = require("./src/routes/vehiculos");
 
-// 🔥 RUTA PRINCIPAL
-app.get("/", (req, res) => {
-
-    res.send("Servidor funcionando correctamente");
-
-});
-
-// 🔥 RUTAS API
+// VÍAS DE ENRUTAMIENTO (ENDPOINTS GENERALES)
 app.use("/api", alumnosRoutes);
-
-app.use("/api", materiasRoutes);
-
+app.use("/api", materiasRoutes);         // ¡Montado bajo el prefijo /api!
+app.use("/api", alumnosMateriasRoutes);
 app.use("/api", vehiculosRoutes);
 
-app.use("/api", authRoutes);
+// CONEXIÓN A MONGODB
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/escuela_mongodb";
 
-// 🔥 PUERTO
-const PORT = 5000;
+mongoose.connect(MONGO_URI)
+    .then(() => {
+        console.log("Conexión exitosa a la base de datos de MongoDB");
+    })
+    .catch((error) => {
+        console.error("Error crítico al intentar conectar a MongoDB:", error.message);
+    });
 
-// 🔥 INICIAR SERVIDOR
-app.listen(PORT, () => {
-
-    console.log(`Servidor corriendo en puerto ${PORT}`);
-
+// MANEJO DE RUTAS NO ENCONTRADAS (404)
+app.use((req, res) => {
+    return res.status(404).json({
+        message: "El endpoint solicitado no existe en este servidor del backend"
+    });
 });
+
+// ARRANCAR EL SERVIDOR
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(` Servidor del Backend corriendo activamente en el puerto ${PORT}`);
+    console.log(` Listo para procesar pruebas en Postman o Thunder Client`);
+    console.log(`=======================================================`);
+});
+
+module.exports = app;
